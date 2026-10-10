@@ -1,24 +1,53 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays, Compass, Landmark, MapPin, Mountain, Palmtree, ShieldCheck, Sparkles, TentTree, Users, Utensils } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { GlassNavbar, Brand } from "@/components/GlassNavbar";
+import { ImageMagnifier } from "@/components/ImageMagnifier";
+import { SearchBar } from "@/components/SearchBar";
+import { DestinationCard } from "@/components/DestinationCard";
+import { TripPlanner } from "@/components/TripPlanner";
+import { destinations, heroImage, months, type Destination } from "@/lib/destinations";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({ meta: [
+    { title: "UT Explorer India — Discover India, Your Way" },
+    { name: "description", content: "Discover India's eight Union Territories. Explore island escapes, Himalayan journeys, local flavours and plan your own trip." },
+    { property: "og:title", content: "UT Explorer India — Discover India, Your Way" },
+    { property: "og:description", content: "Eight extraordinary Union Territories. Find your next Indian journey, from coral lagoons to Himalayan horizons." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
+const experiences = [
+  { name: "Beaches & islands", icon: Palmtree, category: "Islands & beaches" },
+  { name: "Mountains & nature", icon: Mountain, category: "Mountains & nature" },
+  { name: "Heritage & architecture", icon: Landmark, category: "Heritage & cities" },
+  { name: "Food & culture", icon: Utensils, category: "Heritage & cities" },
+  { name: "Family holidays", icon: Users, category: "All destinations" },
+  { name: "Adventure & outdoors", icon: TentTree, category: "Mountains & nature" },
+];
 function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("All destinations");
+  const [month, setMonth] = useState(10);
+  const [detail, setDetail] = useState<Destination | null>(null);
+  const [legal, setLegal] = useState<string | null>(null);
+  const filtered = destinations.filter(d => (category === "All destinations" || d.category === category) && `${d.name} ${d.description} ${d.highlights.join(" ")}`.toLowerCase().includes(query.toLowerCase().trim()));
+  const search = () => { setCategory("All destinations"); document.getElementById("explore")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }); };
+  const chooseExperience = (value: string) => { setCategory(value); setQuery(""); document.getElementById("explore")?.scrollIntoView(); };
+  return <>
+    <section id="home" className="hero"><GlassNavbar /><div className="hero-photo"><ImageMagnifier src={heroImage} alt="Houseboats on Dal Lake, Kashmir, beneath snow-covered Himalayan mountains" /></div><div className="hero-content page-width"><p className="eyebrow">8 territories. Endless discoveries.</p><h1>Discover India,<br /><em>Your Way.</em></h1><p className="hero-subtitle">Find extraordinary places, local flavours<br className="hidden sm:block" /> and journeys worth remembering.</p><SearchBar value={query} onChange={setQuery} onSearch={search} /><div className="hero-actions"><Button asChild variant="saffron"><a href="#explore">Explore Destinations<ArrowRight /></a></Button><Button asChild variant="glass"><a href="#planner">Plan My Trip<ArrowUpRight /></a></Button></div></div><a href="https://jandktourism.jk.gov.in/" target="_blank" rel="noopener noreferrer" className="hero-location"><MapPin />Dal Lake, Kashmir <span>· A moment of stillness</span></a><a href="#explore" className="hero-bottom-note">Let your curiosity lead<ArrowDown /></a></section>
+    <div className="intro-strip"><div className="page-width intro-strip-inner"><div className="intro-item"><Compass /><div><strong>8 Union Territories</strong><span>A thousand different stories</span></div></div><div className="intro-item"><Sparkles /><div><strong>Extraordinary experiences</strong><span>Beyond the familiar</span></div></div><div className="intro-item"><ShieldCheck /><div><strong>Travel thoughtfully</strong><span>Official tourism resources</span></div></div></div></div>
+    <section id="explore" className="explore-section page-width"><div className="section-header"><div><p className="eyebrow">Find your somewhere</p><h2 className="section-heading">Eight territories.<br className="sm:hidden" /> <em>Infinite possibilities.</em></h2><p className="section-copy">From island time to mountain highs, discover a different side of India.</p></div><span className="text-xs text-muted-foreground">{filtered.length} destinations to discover</span></div><div className="filter-row" aria-label="Destination categories">{["All destinations", "Islands & beaches", "Mountains & nature", "Heritage & cities"].map(c => <Button key={c} variant="chip" data-active={category === c} aria-pressed={category === c} onClick={() => setCategory(c)}>{c}</Button>)}</div><div className="destination-grid">{filtered.map(d => <DestinationCard destination={d} key={d.id} onExplore={setDetail} />)}</div>{filtered.length === 0 && <div className="empty-state" role="status"><h3>No destinations found for “{query}”</h3><p className="section-copy mt-2">Try a territory name, a landmark or a different category.</p><Button variant="outline" className="mt-4" onClick={() => { setQuery(""); setCategory("All destinations"); }}>Show all destinations</Button></div>}</section>
+    <section id="experiences" className="experiences-section"><div className="page-width"><p className="eyebrow">More than a destination</p><h2 className="section-heading">What moves <em>you?</em></h2><p className="section-copy">Find a journey that speaks to your kind of adventure.</p><div className="experience-grid">{experiences.map(({ name, icon: Icon, category: c }) => <Button key={name} variant="ghost" className="experience-tile" id={name === "Food & culture" ? "food" : undefined} onClick={() => chooseExperience(c)}><Icon strokeWidth={1.4} /><span className="flex w-full items-center justify-between gap-2">{name}<ArrowUpRight className="shrink-0 !size-3.5" /></span></Button>)}</div></div></section>
+    <section className="season-section page-width" id="seasons"><div className="section-header"><div><p className="eyebrow">The right place, the right time</p><h2 className="section-heading">Every month, <em>a new possibility.</em></h2><p className="section-copy">Find your next escape by season.</p></div><CalendarDays className="hidden md:block text-muted-foreground" size={26} strokeWidth={1.3} /></div><div className="month-grid" aria-label="Travel month">{months.map((m, i) => <Button key={m} variant="chip" data-active={month === i + 1} aria-pressed={month === i + 1} onClick={() => setMonth(i + 1)}>{m}</Button>)}</div><p className="text-xs text-muted-foreground mb-3">Where to go in {new Intl.DateTimeFormat("en", { month: "long" }).format(new Date(2026, month - 1, 1))}</p><div className="season-results" aria-live="polite">{destinations.filter(d => d.months.includes(month)).map(d => <a key={d.id} href={d.url} target="_blank" rel="noopener noreferrer">{d.name}<ArrowUpRight /></a>)}{!destinations.some(d => d.months.includes(month)) && <p className="section-copy">August falls outside the suggested seasons shown here. Check official tourism resources for monsoon conditions and access.</p>}</div><p className="text-[10px] text-muted-foreground mt-5">Seasonal guidance varies by region and activity. Check current weather and access before you travel.</p></section>
+    <TripPlanner />
+    <footer className="footer page-width"><div className="footer-top"><div><Brand /><p className="footer-copy">Eight unique territories. One incredible India.<br />Go a little further. Come back with a story.</p></div><div className="footer-links"><div><h3>Discover</h3><a href="#explore">Union Territories</a><a href="#experiences">Experiences</a><a href="#seasons">When to visit</a><a href="#planner">Trip Planner</a></div><div><h3>Travel resources</h3><a href="https://www.incredibleindia.gov.in/" target="_blank" rel="noopener noreferrer">Incredible India ↗</a><a href="https://tourism.gov.in/" target="_blank" rel="noopener noreferrer">Ministry of Tourism ↗</a><Button variant="link" className="p-0 min-h-11 text-[11px] text-muted-foreground" onClick={() => setLegal("Photo credits")}>Photo credits</Button></div><div><h3>Get in touch</h3><p>Contact email — coming soon</p><p>Contact phone — coming soon</p><p>India</p></div></div></div><div className="footer-bottom"><p>© 2026 UT Explorer India. Made for the curious.</p><div className="footer-legal"><Button variant="link" onClick={() => setLegal("Privacy policy")}>Privacy policy</Button><Button variant="link" onClick={() => setLegal("Terms of use")}>Terms of use</Button></div></div></footer>
+    <Dialog open={Boolean(detail)} onOpenChange={open => { if (!open) setDetail(null); }}><DialogContent className="menu-dialog">{detail && <><DialogTitle>{detail.name}</DialogTitle><DialogDescription>{detail.description}</DialogDescription><img className="detail-photo" src={detail.image} alt={detail.alt} /><p className="text-sm"><strong>Explore:</strong> {detail.highlights.join(" · ")}</p><p className="text-sm text-muted-foreground">Suggested season: {detail.season}{detail.id === "kashmir" ? " (Kashmir Valley; Jammu has a different season)" : ""}</p><Button asChild><a href={detail.url} target="_blank" rel="noopener noreferrer">Official tourism website<ArrowUpRight /></a></Button></>}</DialogContent></Dialog>
+    <Dialog open={Boolean(legal)} onOpenChange={open => { if (!open) setLegal(null); }}><DialogContent className="menu-dialog"><DialogTitle>{legal}</DialogTitle><DialogDescription>{legal === "Photo credits" ? "Destination image sources" : "UT Explorer India visitor information"}</DialogDescription>{legal === "Photo credits" ? <ul className="text-sm space-y-2">{destinations.map(d => <li key={d.id}>{d.name} — {d.credit}</li>)}</ul> : legal === "Privacy policy" ? <p className="text-sm leading-7">Searches and trip briefs are processed in your browser. Trip information is not sent to a booking service or saved by this planner. Fonts and images may be delivered by external providers. This is a draft notice; the site owner’s final privacy policy is pending.</p> : <p className="text-sm leading-7">This site provides travel inspiration and a personal planning brief, not bookings. Verify permits, access, weather and prices through official tourism providers before travel. External websites have their own terms. The site owner’s final terms are pending.</p>}</DialogContent></Dialog>
+  </>;
 }
