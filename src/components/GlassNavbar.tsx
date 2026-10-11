@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpRight, Compass, Map, Menu, Utensils, X } from "lucide-react";
+import { ArrowUpRight, Compass, Map, Menu, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
