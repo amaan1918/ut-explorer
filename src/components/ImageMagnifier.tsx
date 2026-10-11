@@ -39,6 +39,8 @@ export function ImageMagnifier({ src, alt, className = "" }: { src: string; alt:
   };
   useEffect(() => {
     const host = frame.current; if (!host) return;
+    const original = image.current;
+    if (original?.complete) { if (original.naturalWidth > 0) setLoaded(true); else setFailed(true); }
     const observer = new ResizeObserver(() => schedule()); observer.observe(host);
     return () => { observer.disconnect(); cancelAnimationFrame(raf.current); };
   }, []);
@@ -68,6 +70,6 @@ export function ImageMagnifier({ src, alt, className = "" }: { src: string; alt:
       <Button variant="glass" size="icon" aria-label="Activate magnifier" title="Magnify photograph" onClick={() => toggle(!active)}><ScanSearch /></Button>
       <Button variant="glass" size="icon" aria-label="Open photograph zoom" title="Open photograph zoom" onClick={() => { toggle(false); setZoomOpen(true); }}><Expand /></Button>
     </div>
-    <Dialog open={zoomOpen} onOpenChange={setZoomOpen}><DialogContent className="photo-dialog"><DialogTitle>Dal Lake, Kashmir</DialogTitle><DialogDescription>Destination photograph</DialogDescription><div className="zoom-photo"><img src={src} alt={alt} style={{ transform: `scale(${zoom})` }} /></div><div className="flex justify-center gap-3"><Button variant="outline" size="icon" aria-label="Zoom out" disabled={zoom <= 1} onClick={() => setZoom(Math.max(1, zoom - .5))}><Minus /></Button><span className="self-center text-sm">{zoom * 100}%</span><Button variant="outline" size="icon" aria-label="Zoom in" disabled={zoom >= 3} onClick={() => setZoom(Math.min(3, zoom + .5))}><Plus /></Button></div></DialogContent></Dialog>
+    <Dialog open={zoomOpen} onOpenChange={setZoomOpen}><DialogContent className="photo-dialog"><DialogTitle>Destination photograph</DialogTitle><DialogDescription>{alt}</DialogDescription><div className="zoom-photo"><img src={src} alt={alt} style={{ transform: `scale(${zoom})` }} /></div><div className="flex justify-center gap-3"><Button variant="outline" size="icon" aria-label="Zoom out" disabled={zoom <= 1} onClick={() => setZoom(Math.max(1, zoom - .5))}><Minus /></Button><span className="self-center text-sm">{zoom * 100}%</span><Button variant="outline" size="icon" aria-label="Zoom in" disabled={zoom >= 3} onClick={() => setZoom(Math.min(3, zoom + .5))}><Plus /></Button></div></DialogContent></Dialog>
   </>;
 }
